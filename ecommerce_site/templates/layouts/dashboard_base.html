@@ -1,0 +1,125 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Dashboard{% endblock %} | E-Store</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="brand">
+                <i class="ri-rocket-2-fill"></i> FluxStore
+            </div>
+
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="#" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                        <i class="ri-dashboard-line"></i> Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'product_list' %}"
+                        class="{% if request.resolver_match.url_name == 'product_list' %}active{% endif %}">
+                        <i class="ri-store-2-line"></i> Marketplace
+                    </a>
+                </li>
+                {% if user.is_staff %}
+                <li class="nav-item">
+                    <a href="#" class="{% if 'manage' in request.path %}active{% endif %}">
+                        <i class="ri-edit-box-line"></i> Manage Products
+                    </a>
+                </li>
+                {% endif %}
+                <li class="nav-item">
+                    <a href="{% url 'order_history' %}" class="{% if 'orders' in request.path %}active{% endif %}">
+                        <i class="ri-shopping-bag-3-line"></i> My Orders
+                    </a>
+                </li>
+            </ul>
+
+            <div class="user-profile-sm">
+                <div class="avatar">{{ user.username|make_list|first|upper }}</div>
+                <div class="user-info">
+                    <div style="font-weight: 600;">{{ user.username }}</div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted);">{{ user.email|default:"User" }}</div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Top Bar -->
+            <header class="top-bar">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <button class="menu-toggle" onclick="toggleSidebar()">
+                        <i class="ri-menu-line"></i>
+                    </button>
+                    <h1 class="page-title">{% block page_title %}Dashboard{% endblock %}</h1>
+                </div>
+
+                <div class="top-actions">
+                    <button class="action-btn">
+                        <i class="ri-search-line"></i>
+                    </button>
+                    <button class="action-btn">
+                        <i class="ri-notification-3-line"></i>
+                        <span class="badge">3</span>
+                    </button>
+                    <a href="{% url 'cart_detail' %}" class="action-btn">
+                        <i class="ri-shopping-cart-2-line"></i>
+                        <span class="badge" id="cart-count">
+                            {% if request.session.cart %}
+                            {{ request.session.cart.values|length }}
+                            {% else %}
+                            0
+                            {% endif %}
+                        </span>
+                    </a>
+                    <a href="{% url 'logout' %}" class="btn btn-outline"
+                        style="padding: 0.5rem 1rem; border-radius: 2rem;">
+                        <i class="ri-logout-box-r-line"></i> Logout
+                    </a>
+                </div>
+            </header>
+
+            <!-- Scrollable Content -->
+            <div class="content-wrapper">
+                {% if messages %}
+                {% for message in messages %}
+                <div
+                    style="padding: 1rem; margin-bottom: 1rem; border-radius: 0.5rem; background: rgba(16, 185, 129, 0.1); color: var(--success); border: 1px solid var(--success);">
+                    {{ message }}
+                </div>
+                {% endfor %}
+                {% endif %}
+
+                {% block content %}
+                <!-- Dynamic Content Goes Here -->
+                {% endblock %}
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
+        }
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+
+</html>

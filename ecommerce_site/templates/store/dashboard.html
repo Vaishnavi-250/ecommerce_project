@@ -1,0 +1,147 @@
+{% extends 'layouts/dashboard_base.html' %}
+
+{% block title %}Overview{% endblock %}
+{% block page_title %}Dashboard Overview{% endblock %}
+
+{% block content %}
+<div class="animate-fade">
+    {% if is_admin %}
+    <!-- Admin Dashboard -->
+    <div class="dashboard-grid">
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">Total Sales</span>
+                <i class="ri-money-dollar-circle-line" style="font-size: 1.5rem; color: var(--success);"></i>
+            </div>
+            <div class="stat-value">₹{{ total_sales }}</div>
+            <div class="stat-trend trend-up">
+                <i class="ri-arrow-up-line"></i> +12.5% from last month
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">Pending Orders</span>
+                <i class="ri-shopping-basket-line" style="font-size: 1.5rem; color: var(--warning);"></i>
+            </div>
+            <div class="stat-value">{{ orders_pending }}</div>
+            <div class="stat-trend">
+                <span style="color: var(--text-muted);">Requires attention</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">Low Stock</span>
+                <i class="ri-archive-line" style="font-size: 1.5rem; color: var(--danger);"></i>
+            </div>
+            <div class="stat-value">{{ low_stock_items }}</div>
+            <div class="stat-trend trend-down">
+                <i class="ri-arrow-down-line"></i> Reorder needed
+            </div>
+        </div>
+    </div>
+
+    <div class="card" style="margin-top: 1.5rem;">
+        <div class="card-header">
+            <span class="card-title">Sales Overview</span>
+            <select class="form-control" style="width: auto; padding: 0.25rem 0.5rem;">
+                <option>This Week</option>
+                <option>This Month</option>
+            </select>
+        </div>
+        <div style="height: 300px; width: 100%;">
+            <canvas id="salesChart"></canvas>
+        </div>
+    </div>
+
+    {% else %}
+    <!-- Customer Dashboard -->
+    <div class="card"
+        style="margin-bottom: 2rem; background: linear-gradient(135deg, var(--primary), var(--secondary)); border: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <h2 style="font-size: 1.75rem; font-weight: 700; margin-bottom: 0.5rem;">Welcome back, {{ user.username
+                    }}!</h2>
+                <p style="opacity: 0.9;">Ready to discover something amazing today?</p>
+            </div>
+            <i class="ri-shopping-bag-3-fill" style="font-size: 4rem; opacity: 0.2;"></i>
+        </div>
+    </div>
+
+    <div style="margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
+        <h3 class="card-title">Recommended for You</h3>
+        <a href="{% url 'product_list' %}" style="color: var(--primary); text-decoration: none; font-weight: 600;">View
+            All <i class="ri-arrow-right-line"></i></a>
+    </div>
+
+    <div class="product-grid">
+        {% for product in recent_products %}
+        <div class="product-card">
+            <div class="product-img">
+                <i class="ri-image-line" style="font-size: 3rem;"></i>
+            </div>
+            <div class="product-info">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <a href="{% url 'product_detail' product.id %}" style="text-decoration: none; color: inherit;">
+                        <h4 style="font-weight: 600;">{{ product.name }}</h4>
+                    </a>
+                    <span class="price">₹{{ product.price }}</span>
+                </div>
+                <p
+                    style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                    {{ product.description }}
+                </p>
+                <button class="btn btn-primary" style="width: 100%; justify-content: center;">
+                    <i class="ri-shopping-cart-2-fill"></i> Add to Cart
+                </button>
+            </div>
+        </div>
+        {% empty %}
+        <div class="card" style="grid-column: 1 / -1; text-align: center; padding: 3rem;">
+            <p style="color: var(--text-muted);">No products found. Check back later!</p>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if is_admin %}
+<script>
+    const ctx = document.getElementById('salesChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            datasets: [{
+                label: 'Sales (₹)',
+                data: [1200, 1900, 3000, 5000, 2000, 3000, 6000],
+                borderColor: '#6366f1',
+                backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                    ticks: { color: '#94a3b8' }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: { color: '#94a3b8' }
+                }
+            }
+        }
+    });
+</script>
+{% endif %}
+{% endblock %}
