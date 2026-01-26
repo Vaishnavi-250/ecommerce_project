@@ -1,0 +1,25 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/styles.css' %}">
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Product List</title>
+  <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body>
+  <h2>Product List</h2>
+  
+  {% for product in products %}
+    <div class="product-card">
+      <h3>{{ product.name }}</h3>
+      <p>Price: ₹{{ product.price }}</p>
+      <p>{{ product.description }}</p>
+    </div>
+  {% empty %}
+    <p>No products available.</p>
+  {% endfor %}
+</body>
+</html>
