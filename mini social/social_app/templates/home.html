@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini Social - Enhanced Dashboard</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'styles.css' %}?v=2">
+</head>
+
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <span class="logo-icon">📱</span>
+                <span>Mini Social</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="{% url 'home' %}" class="nav-link active">Dashboard</a></li>
+                {% if user.is_authenticated %}
+                <li><a href="{% url 'create_post' %}" class="nav-link">Create Post</a></li>
+                <li><a href="{% url 'profile' user.id %}" class="nav-link">My Profile</a></li>
+                <li><a href="{% url 'logout' %}" class="nav-link">Logout</a></li>
+                {% else %}
+                <li><a href="{% url 'login' %}" class="nav-link">Login</a></li>
+                <li><a href="{% url 'register' %}" class="nav-link">Register</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </nav>
+
+    <div class="main-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <!-- User Stats Card -->
+            {% if user.is_authenticated %}
+            <div class="stat-card">
+                <h3>Your Stats</h3>
+                <div class="stat-item">
+                    <span class="stat-label">Posts</span>
+                    <span class="stat-value">{{ user_stats.posts }}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Followers</span>
+                    <span class="stat-value">{{ user_stats.followers }}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Following</span>
+                    <span class="stat-value">{{ user_stats.following }}</span>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Global Stats Card -->
+            <div class="stat-card">
+                <h3>Platform Stats</h3>
+                <div class="stat-item">
+                    <span class="stat-label">Total Posts</span>
+                    <span class="stat-value">{{ total_posts }}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Total Users</span>
+                    <span class="stat-value">{{ total_users }}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Total Comments</span>
+                    <span class="stat-value">{{ total_comments }}</span>
+                </div>
+            </div>
+
+            <!-- Top Users -->
+            <div class="top-users-card">
+                <h3>🌟 Top Users</h3>
+                <div class="users-list">
+                    {% for user_top in top_users %}
+                    <a href="{% url 'profile' user_top.id %}" class="user-mini-card">
+                        <div class="user-avatar">{{ user_top.first_name|default:user_top.username|first|upper }}</div>
+                        <div class="user-info">
+                            <div class="user-name">{{ user_top.username }}</div>
+                            <div class="user-count">{{ user_top.followers__count }} followers</div>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Welcome Section -->
+            {% if user.is_authenticated %}
+            <div class="welcome-section">
+                <h2>Welcome back, <span class="highlight">{{ user.first_name|default:user.username }}</span>! 👋</h2>
+                <p>Here's what's happening in your community</p>
+            </div>
+            {% endif %}
+
+            <!-- Trending Posts Section -->
+            {% if trending_posts %}
+            <section class="trending-section">
+                <h3>🔥 Trending Now</h3>
+                <div class="trending-grid">
+                    {% for post in trending_posts %}
+                    <div class="trending-card">
+                        <div class="trending-header">
+                            <a href="{% url 'profile' post.author.id %}" class="author-link">
+                                <strong>{{ post.author.username }}</strong>
+                            </a>
+                            <span class="post-time">{{ post.created_at|date:"M d, H:i" }}</span>
+                        </div>
+                        <p class="trending-content">{{ post.content|truncatewords:15 }}</p>
+                        <div class="trending-stats">
+                            <span class="stat">❤️ {{ post.likes.count }}</span>
+                            <span class="stat">💬 {{ post.comments.count }}</span>
+                        </div>
+                        <a href="{% url 'post_detail' post.id %}" class="view-post-link">View Post →</a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+            {% endif %}
+
+            <!-- Posts Feed -->
+            <section class="posts-section">
+                <h3>📰 Latest Posts</h3>
+                {% if posts %}
+                <div class="posts-feed">
+                    {% for post in posts %}
+                    <article class="post-card">
+                        <div class="post-header">
+                            <div class="post-author">
+                                <div class="avatar-circle">
+                                    {{ post.author.first_name|default:post.author.username|first|upper }}
+                                </div>
+                                <div class="author-info">
+                                    <a href="{% url 'profile' post.author.id %}" class="author-name">
+                                        {{ post.author.username }}
+                                    </a>
+                                    <span class="post-date">{{ post.created_at|timesince }} ago</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="post-content">
+                            <p>{{ post.content }}</p>
+                            {% if post.image %}
+                            <div class="post-image-container">
+                                <img src="{{ post.image.url }}" alt="Post image" class="post-image">
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="post-footer">
+                            <div class="post-stats">
+                                <span class="stat-badge">❤️ {{ post.likes.count }} Likes</span>
+                                <span class="stat-badge">💬 {{ post.comments.count }} Comments</span>
+                            </div>
+                            <a href="{% url 'post_detail' post.id %}" class="view-comments-btn">
+                                View Comments
+                            </a>
+                        </div>
+                    </article>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <p>📭 No posts yet. Be the first to share something!</p>
+                </div>
+                {% endif %}
+            </section>
+
+            <!-- Recent Activity Section -->
+            {% if recent_comments %}
+            <section class="activity-section">
+                <h3>⚡ Recent Activity</h3>
+                <div class="activity-feed">
+                    {% for comment in recent_comments %}
+                    <div class="activity-item">
+                        <div class="activity-avatar">
+                            {{ comment.author.first_name|default:comment.author.username|first|upper }}
+                        </div>
+                        <div class="activity-content">
+                            <a href="{% url 'profile' comment.author.id %}" class="activity-author">
+                                {{ comment.author.username }}
+                            </a>
+                            <span class="activity-action">commented on</span>
+                            <a href="{% url 'post_detail' comment.post.id %}" class="activity-post">
+                                a post
+                            </a>
+                        </div>
+                        <span class="activity-time">{{ comment.created_at|timesince }} ago</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+            {% endif %}
+        </main>
+
+        <!-- Right Sidebar -->
+        <aside class="right-sidebar">
+            <!-- Quick Stats -->
+            <div class="quick-stats">
+                <h3>Quick Stats</h3>
+                <div class="stat-row">
+                    <span>New This Week</span>
+                    <span class="count">{{ total_posts }}</span>
+                </div>
+                <div class="stat-row">
+                    <span>Active Users</span>
+                    <span class="count">{{ total_users }}</span>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2026 Mini Social Platform. All rights reserved.</p>
+    </footer>
+
+    <script src="{% static 'script.js' %}"></script>
+</body>
+
+</html>

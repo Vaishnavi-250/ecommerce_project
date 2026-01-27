@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ post.author.username }}'s Post - Mini Social</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'styles.css' %}?v=2">
+</head>
+
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <span class="logo-icon">📱</span>
+                <span>Mini Social</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="{% url 'home' %}" class="nav-link">Dashboard</a></li>
+                {% if user.is_authenticated %}
+                <li><a href="{% url 'create_post' %}" class="nav-link">Create Post</a></li>
+                <li><a href="{% url 'profile' user.id %}" class="nav-link">My Profile</a></li>
+                <li><a href="{% url 'logout' %}" class="nav-link">Logout</a></li>
+                {% else %}
+                <li><a href="{% url 'login' %}" class="nav-link">Login</a></li>
+                <li><a href="{% url 'register' %}" class="nav-link">Register</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </nav>
+
+    <div class="main-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="stat-card">
+                <h3>Post Stats</h3>
+                <div class="stat-item">
+                    <span class="stat-label">Likes</span>
+                    <span class="stat-value">{{ post.likes.count }}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Comments</span>
+                    <span class="stat-value">{{ comments.count }}</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Posted</span>
+                    <span class="stat-label">{{ post.created_at|date:"M d, Y" }}</span>
+                </div>
+            </div>
+
+            <!-- Author Card -->
+            <div class="stat-card">
+                <h3>Author</h3>
+                <a href="{% url 'profile' post.author.id %}" class="user-mini-card">
+                    <div class="user-avatar">{{ post.author.first_name|default:post.author.username|first|upper }}</div>
+                    <div class="user-info">
+                        <div class="user-name">{{ post.author.username }}</div>
+                        <div class="user-count">{{ post.author.followers.count }} followers</div>
+                    </div>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Post Content -->
+            <article class="post-detail-card">
+                <div class="post-detail-header">
+                    <div class="post-author">
+                        <div class="avatar-circle">
+                            {{ post.author.first_name|default:post.author.username|first|upper }}
+                        </div>
+                        <div class="author-info">
+                            <a href="{% url 'profile' post.author.id %}" class="author-name">
+                                {{ post.author.username }}
+                            </a>
+                            <span class="post-date">{{ post.created_at|date:"F d, Y H:i" }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="post-detail-content">
+                    <p>{{ post.content }}</p>
+                    {% if post.image %}
+                    <div class="post-image-container">
+                        <img src="{{ post.image.url }}" alt="Post image" class="post-image">
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="post-detail-stats">
+                    <div class="stat-badge">❤️ {{ post.likes.count }} Likes</div>
+                    <div class="stat-badge">💬 {{ comments.count }} Comments</div>
+                </div>
+
+                <div class="post-detail-actions">
+                    <button class="action-btn like-btn {% if user_liked %}liked{% endif %}"
+                        data-post-id="{{ post.id }}">
+                        {% if user_liked %}❤️ Liked{% else %}🤍 Like{% endif %}
+                    </button>
+                    <button class="action-btn">💬 Comment</button>
+                    <button class="action-btn">↗️ Share</button>
+                </div>
+            </article>
+
+            <!-- Comments Section -->
+            <section class="comments-section">
+                <h2>💬 Comments ({{ comments.count }})</h2>
+
+                <!-- Add Comment Form -->
+                {% if user.is_authenticated %}
+                <div class="comment-form-container">
+                    <form method="POST" class="comment-form">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <textarea name="comment" placeholder="Share your thoughts..." rows="3" required></textarea>
+                        </div>
+                        <button type="submit" class="submit-btn">Post Comment</button>
+                    </form>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <p>👤 <a href="{% url 'login' %}">Login</a> to add a comment</p>
+                </div>
+                {% endif %}
+
+                <!-- Comments List -->
+                {% if comments %}
+                <div class="comments-list">
+                    {% for comment in comments %}
+                    <div class="comment-card">
+                        <div class="comment-header">
+                            <div class="comment-author">
+                                <div class="comment-avatar">
+                                    {{ comment.author.first_name|default:comment.author.username|first|upper }}
+                                </div>
+                                <div class="comment-author-info">
+                                    <a href="{% url 'profile' comment.author.id %}" class="comment-author-name">
+                                        {{ comment.author.username }}
+                                    </a>
+                                    <span class="comment-time">{{ comment.created_at|timesince }} ago</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="comment-body">
+                            <p>{{ comment.content }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <p>📭 No comments yet. Be the first to comment!</p>
+                </div>
+                {% endif %}
+            </section>
+        </main>
+
+        <!-- Right Sidebar -->
+        <aside class="right-sidebar">
+            <div class="quick-stats">
+                <h3>Quick Links</h3>
+                <a href="{% url 'home' %}" class="quick-link">🏠 Back to Feed</a>
+                <a href="{% url 'profile' post.author.id %}" class="quick-link">👤 View Author Profile</a>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2026 Mini Social Platform. All rights reserved.</p>
+    </footer>
+
+    <style>
+        .post-detail-card {
+            background: var(--surface);
+            border: 1px solid var(--border-color);
+            border-radius: 1.25rem;
+            padding: 2rem;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .post-detail-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .post-detail-content {
+            margin: 2rem 0;
+            line-height: 1.8;
+            font-size: 1.1rem;
+        }
+
+        .post-detail-content p {
+            color: var(--text-secondary);
+        }
+
+        .post-detail-stats {
+            display: flex;
+            gap: 2rem;
+            padding: 1.5rem 0;
+            margin: 1.5rem 0;
+            border-top: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .post-detail-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 0.75rem 1.5rem;
+            background: var(--surface-light);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .action-btn:hover {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+        }
+
+        .action-btn.like-btn.liked {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            border-color: #ef4444;
+            color: white;
+        }
+
+        .comments-section {
+            margin-top: 3rem;
+        }
+
+        .comments-section h2 {
+            margin-bottom: 2rem;
+        }
+
+        .comment-form-container {
+            background: var(--surface);
+            border: 1px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .comment-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group textarea {
+            background: var(--surface-light);
+            color: var(--text-primary);
+            padding: 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            font-family: inherit;
+            resize: vertical;
+        }
+
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+        }
+
+        .comments-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .comment-card {
+            background: var(--surface);
+            border: 1px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .comment-card:hover {
+            border-color: var(--primary-color);
+        }
+
+        .comment-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .comment-author {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex: 1;
+        }
+
+        .comment-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .comment-author-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .comment-author-name {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .comment-author-name:hover {
+            color: var(--accent-color);
+        }
+
+        .comment-time {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .comment-body {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-left: 56px;
+        }
+
+        .comment-body p {
+            margin: 0;
+        }
+
+        .quick-link {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem;
+            background: var(--surface-light);
+            color: var(--text-primary);
+            text-decoration: none;
+            border-radius: 0.5rem;
+            margin-top: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .quick-link:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .post-detail-actions {
+                flex-direction: column;
+            }
+
+            .post-detail-stats {
+                flex-direction: column;
+            }
+
+            .comment-body {
+                margin-left: 0;
+                margin-top: 1rem;
+            }
+        }
+    </style>
+
+    <script src="{% static 'script.js' %}"></script>
+</body>
+
+</html>

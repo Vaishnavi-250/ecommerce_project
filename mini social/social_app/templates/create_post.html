@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Post - Mini Social</title>
+    {% load static %}
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0f0f0f;
+            color: #e0e0e0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background: #1a1a1a;
+            border-bottom: 1px solid #333;
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .navbar-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar-brand {
+            font-size: 24px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .navbar-links a {
+            color: #e0e0e0;
+            text-decoration: none;
+            margin-left: 20px;
+            transition: color 0.3s;
+        }
+
+        .navbar-links a:hover {
+            color: #667eea;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .post-form-card {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .form-header {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .form-header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .form-header p {
+            color: #999;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            color: #e0e0e0;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        textarea,
+        input[type="file"] {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid #333;
+            border-radius: 8px;
+            background: #242424;
+            color: #e0e0e0;
+            font-family: inherit;
+            font-size: 14px;
+            transition: border-color 0.3s;
+            resize: vertical;
+        }
+
+        textarea:focus,
+        input[type="file"]:focus {
+            outline: none;
+            border-color: #667eea;
+            background: #2a2a2a;
+        }
+
+        textarea::placeholder {
+            color: #666;
+        }
+
+        .image-preview-container {
+            margin-top: 15px;
+            display: none;
+        }
+
+        .image-preview {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 8px;
+            border: 1px solid #333;
+        }
+
+        .message {
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .error-message {
+            background: rgba(255, 107, 107, 0.1);
+            border-left: 3px solid #ff6b6b;
+            color: #ff6b6b;
+        }
+
+        .success-message {
+            background: rgba(81, 207, 102, 0.1);
+            border-left: 3px solid #51cf66;
+            color: #51cf66;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            flex: 1;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-cancel {
+            background: #333;
+            color: #e0e0e0;
+            flex: 1;
+        }
+
+        .btn-cancel:hover {
+            background: #444;
+        }
+
+        .help-text {
+            font-size: 12px;
+            color: #999;
+            margin-top: 8px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                margin: 20px auto;
+            }
+
+            .post-form-card {
+                padding: 20px;
+            }
+
+            .form-header h1 {
+                font-size: 24px;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="navbar-content">
+            <div class="navbar-brand">Mini Social</div>
+            <div class="navbar-links">
+                <a href="{% url 'home' %}">Home</a>
+                <a href="{% url 'profile' request.user.id %}">Profile</a>
+                <a href="{% url 'logout' %}">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        {% if messages %}
+        {% for message in messages %}
+        <div class="message {% if message.tags %}{{ message.tags }}-message{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+
+        <div class="post-form-card">
+            <div class="form-header">
+                <h1>Create New Post</h1>
+                <p>Share something with your followers</p>
+            </div>
+
+            <form method="post" enctype="multipart/form-data" class="post-form">
+                {% csrf_token %}
+
+                <div class="form-group">
+                    <label for="id_content">What's on your mind?</label>
+                    {{ form.content }}
+                    {% if form.content.errors %}
+                    <div class="message error-message">{{ form.content.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="id_image">Add Image (Optional)</label>
+                    <input type="file" id="id_image" name="image" accept="image/*" onchange="previewImage(event)">
+                    <div class="help-text">Supported formats: JPG, PNG, GIF, WebP (Max 5MB)</div>
+                    {% if form.image.errors %}
+                    <div class="message error-message">{{ form.image.errors.0 }}</div>
+                    {% endif %}
+                    <div class="image-preview-container" id="previewContainer">
+                        <img id="preview" class="image-preview" src="" alt="Preview">
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <a href="{% url 'home' %}" class="btn btn-cancel">Cancel</a>
+                    <button type="submit" class="btn btn-submit">Post</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function previewImage(event) {
+            const file = event.target.files[0];
+            const preview = document.getElementById('preview');
+            const container = document.getElementById('previewContainer');
+
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    preview.src = e.target.result;
+                    container.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                container.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+
+</html>

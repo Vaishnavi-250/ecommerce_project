@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ user_profile.username }}'s Profile - Mini Social</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'styles.css' %}?v=2">
+</head>
+
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <span class="logo-icon">📱</span>
+                <span>Mini Social</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="{% url 'home' %}" class="nav-link">Dashboard</a></li>
+                {% if user.is_authenticated %}
+                <li><a href="{% url 'profile' user.id %}" class="nav-link">My Profile</a></li>
+                <li><a href="/admin/logout/" class="nav-link">Logout</a></li>
+                {% else %}
+                <li><a href="/admin/login/" class="nav-link">Login</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </nav>
+
+    <div class="main-container">
+        <!-- Profile Header Section -->
+        <div class="profile-section" style="grid-column: 1 / -1; margin-bottom: 2rem;">
+            <div class="profile-header">
+                <div class="profile-cover"
+                    style="background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));"></div>
+
+                <div class="profile-content">
+                    <div class="profile-avatar">
+                        {{ user_profile.first_name|default:user_profile.username|first|upper }}
+                    </div>
+
+                    <div class="profile-info">
+                        <h1>{{ user_profile.username }}</h1>
+                        {% if user_profile.profile.bio %}
+                        <p class="profile-bio">{{ user_profile.profile.bio }}</p>
+                        {% else %}
+                        <p class="profile-bio">No bio yet</p>
+                        {% endif %}
+
+                        <div class="profile-stats">
+                            <div class="stat-box">
+                                <span class="stat-number">{{ posts_count }}</span>
+                                <span class="stat-label">Posts</span>
+                            </div>
+                            <div class="stat-box">
+                                <span class="stat-number">{{ followers_count }}</span>
+                                <span class="stat-label">Followers</span>
+                            </div>
+                            <div class="stat-box">
+                                <span class="stat-number">{{ following_count }}</span>
+                                <span class="stat-label">Following</span>
+                            </div>
+                        </div>
+
+                        {% if user.is_authenticated and user.id != user_profile.id %}
+                        <div class="profile-actions">
+                            {% if is_following %}
+                            <button class="btn-secondary">✓ Following</button>
+                            {% else %}
+                            <button class="btn-primary">+ Follow</button>
+                            {% endif %}
+                            <button class="btn-secondary">💬 Message</button>
+                        </div>
+                        {% elif user.id == user_profile.id %}
+                        <div class="profile-actions">
+                            <a href="{% url 'edit_profile' %}" class="btn-primary">✏️ Edit Profile</a>
+                            <a href="{% url 'home' %}" class="btn-secondary">🏠 Back to Home</a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <main class="main-content" style="grid-column: 1 / -1;">
+            <!-- Posts Section -->
+            <section class="posts-section">
+                <h2>📝 Posts by {{ user_profile.username }}</h2>
+
+                {% if posts %}
+                <div class="posts-feed">
+                    {% for post in posts %}
+                    <article class="post-card">
+                        <div class="post-header">
+                            <div class="post-author">
+                                <div class="avatar-circle">
+                                    {{ post.author.first_name|default:post.author.username|first|upper }}
+                                </div>
+                                <div class="author-info">
+                                    <a href="{% url 'profile' post.author.id %}" class="author-name">
+                                        {{ post.author.username }}
+                                    </a>
+                                    <span class="post-date">{{ post.created_at|timesince }} ago</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="post-content">
+                            <p>{{ post.content }}</p>
+                        </div>
+
+                        <div class="post-footer">
+                            <div class="post-stats">
+                                <span class="stat-badge">❤️ {{ post.likes.count }} Likes</span>
+                                <span class="stat-badge">💬 {{ post.comments.count }} Comments</span>
+                            </div>
+                            <a href="{% url 'post_detail' post.id %}" class="view-comments-btn">
+                                View Details
+                            </a>
+                        </div>
+                    </article>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <p>📭 No posts yet from {{ user_profile.username }}</p>
+                </div>
+                {% endif %}
+            </section>
+
+            <!-- Most Liked Post -->
+            {% if most_liked_post %}
+            <section class="highlight-section">
+                <h2>⭐ Most Popular Post</h2>
+                <div class="highlight-card">
+                    <div class="highlight-badge">Most Liked</div>
+                    <p class="highlight-content">{{ most_liked_post.content }}</p>
+                    <div class="highlight-stats">
+                        <span>❤️ {{ most_liked_post.likes.count }} Likes</span>
+                        <span>💬 {{ most_liked_post.comments.count }} Comments</span>
+                    </div>
+                    <a href="{% url 'post_detail' most_liked_post.id %}" class="view-comments-btn">View Post</a>
+                </div>
+            </section>
+            {% endif %}
+        </main>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2026 Mini Social Platform. All rights reserved.</p>
+    </footer>
+
+    <style>
+        .profile-section {
+            background: var(--surface);
+            border-radius: 1.5rem;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .profile-header {
+            position: relative;
+        }
+
+        .profile-cover {
+            height: 200px;
+            width: 100%;
+        }
+
+        .profile-content {
+            padding: 2rem;
+            position: relative;
+            display: flex;
+            gap: 2rem;
+            align-items: flex-start;
+        }
+
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+            font-size: 3rem;
+            border: 4px solid var(--surface);
+            flex-shrink: 0;
+            margin-top: -80px;
+        }
+
+        .profile-info {
+            flex: 1;
+        }
+
+        .profile-info h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .profile-bio {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+        }
+
+        .profile-stats {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .stat-number {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .profile-actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--surface-light);
+            color: var(--text-primary);
+            padding: 0.75rem 1.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .highlight-section {
+            margin-top: 2rem;
+        }
+
+        .highlight-card {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            padding: 2rem;
+            border-radius: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .highlight-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: var(--accent-color);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.25rem;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .highlight-content {
+            color: white;
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+        }
+
+        .highlight-stats {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        @media (max-width: 768px) {
+            .profile-content {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+
+            .profile-avatar {
+                margin-top: -60px;
+            }
+
+            .profile-stats {
+                justify-content: center;
+            }
+
+            .profile-actions {
+                justify-content: center;
+            }
+        }
+    </style>
+
+    <script src="{% static 'script.js' %}"></script>
+</body>
+
+</html>
