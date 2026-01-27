@@ -10,21 +10,32 @@
     <div class="dashboard-grid">
         <div class="card">
             <div class="card-header">
-                <span class="card-title">Total Sales</span>
+                <span class="card-title">Total Revenue</span>
                 <i class="ri-money-dollar-circle-line" style="font-size: 1.5rem; color: var(--success);"></i>
             </div>
-            <div class="stat-value">₹{{ total_sales }}</div>
+            <div class="stat-value">₹{{ total_revenue }}</div>
             <div class="stat-trend trend-up">
-                <i class="ri-arrow-up-line"></i> +12.5% from last month
+                <i class="ri-arrow-up-line"></i> All time revenue
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">Total Orders</span>
+                <i class="ri-shopping-basket-line" style="font-size: 1.5rem; color: var(--info);"></i>
+            </div>
+            <div class="stat-value">{{ total_orders }}</div>
+            <div class="stat-trend">
+                <span style="color: var(--text-muted);">Total placed</span>
             </div>
         </div>
 
         <div class="card">
             <div class="card-header">
                 <span class="card-title">Pending Orders</span>
-                <i class="ri-shopping-basket-line" style="font-size: 1.5rem; color: var(--warning);"></i>
+                <i class="ri-time-line" style="font-size: 1.5rem; color: var(--warning);"></i>
             </div>
-            <div class="stat-value">{{ orders_pending }}</div>
+            <div class="stat-value">{{ pending_orders }}</div>
             <div class="stat-trend">
                 <span style="color: var(--text-muted);">Requires attention</span>
             </div>
@@ -32,7 +43,7 @@
 
         <div class="card">
             <div class="card-header">
-                <span class="card-title">Low Stock</span>
+                <span class="card-title">Low Stock Items</span>
                 <i class="ri-archive-line" style="font-size: 1.5rem; color: var(--danger);"></i>
             </div>
             <div class="stat-value">{{ low_stock_items }}</div>
@@ -42,16 +53,32 @@
         </div>
     </div>
 
-    <div class="card" style="margin-top: 1.5rem;">
+    <!-- Low Stock Products Table -->
+    <div class="card" style="margin-top: 2rem;">
         <div class="card-header">
-            <span class="card-title">Sales Overview</span>
-            <select class="form-control" style="width: auto; padding: 0.25rem 0.5rem;">
-                <option>This Week</option>
-                <option>This Month</option>
-            </select>
+            <span class="card-title">⚠️ Low Stock Products</span>
         </div>
-        <div style="height: 300px; width: 100%;">
-            <canvas id="salesChart"></canvas>
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="border-bottom: 2px solid var(--border);">
+                        <th style="padding: 0.75rem; text-align: left; color: var(--text-muted); font-weight: 600;">Product Name</th>
+                        <th style="padding: 0.75rem; text-align: left; color: var(--text-muted); font-weight: 600;">Category</th>
+                        <th style="padding: 0.75rem; text-align: left; color: var(--text-muted); font-weight: 600;">Stock</th>
+                        <th style="padding: 0.75rem; text-align: left; color: var(--text-muted); font-weight: 600;">Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in low_stock %}
+                    <tr style="border-bottom: 1px solid var(--border);">
+                        <td style="padding: 0.75rem;">{{ product.name }}</td>
+                        <td style="padding: 0.75rem; color: var(--text-muted);">{{ product.category.name }}</td>
+                        <td style="padding: 0.75rem; color: #e74c3c; font-weight: 600;">{{ product.stock }} units</td>
+                        <td style="padding: 0.75rem;">₹{{ product.price }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 
@@ -61,23 +88,82 @@
         style="margin-bottom: 2rem; background: linear-gradient(135deg, var(--primary), var(--secondary)); border: none;">
         <div style="display: flex; justify-content: space-between; align-items: center;">
             <div>
-                <h2 style="font-size: 1.75rem; font-weight: 700; margin-bottom: 0.5rem;">Welcome back, {{ user.username
-                    }}!</h2>
+                <h2 style="font-size: 1.75rem; font-weight: 700; margin-bottom: 0.5rem;">Welcome back, {{ user.username }}!</h2>
                 <p style="opacity: 0.9;">Ready to discover something amazing today?</p>
             </div>
             <i class="ri-shopping-bag-3-fill" style="font-size: 4rem; opacity: 0.2;"></i>
         </div>
     </div>
 
-    <div style="margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
-        <h3 class="card-title">Recommended for You</h3>
-        <a href="{% url 'product_list' %}" style="color: var(--primary); text-decoration: none; font-weight: 600;">View
-            All <i class="ri-arrow-right-line"></i></a>
+    <!-- Quick Stats -->
+    <div class="dashboard-grid" style="margin-bottom: 2rem;">
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">Total Favorites</span>
+                <i class="ri-heart-line" style="font-size: 1.5rem; color: #e74c3c;"></i>
+            </div>
+            <div class="stat-value">{{ favorites_count }}</div>
+            <a href="{% url 'favorites_list' %}" style="color: var(--primary); text-decoration: none; font-size: 0.9rem;">View Favorites →</a>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">Total Orders</span>
+                <i class="ri-shopping-bag-line" style="font-size: 1.5rem; color: #2ecc71;"></i>
+            </div>
+            <div class="stat-value">{{ recent_orders|length }}</div>
+            <a href="{% url 'order_history' %}" style="color: var(--primary); text-decoration: none; font-size: 0.9rem;">View Orders →</a>
+        </div>
     </div>
 
-    <div class="product-grid">
-        {% for product in recent_products %}
-        <div class="product-card">
+    <!-- Featured Products -->
+    {% if featured_products %}
+    <div style="margin-bottom: 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3 class="card-title">⭐ Featured Products</h3>
+            <a href="{% url 'product_list' %}" style="color: var(--primary); text-decoration: none; font-weight: 600;">View All <i class="ri-arrow-right-line"></i></a>
+        </div>
+        <div class="product-grid">
+            {% for product in featured_products %}
+            <div class="product-card">
+                <div class="product-img" style="position: relative; background: var(--surface); border-radius: 0.5rem; overflow: hidden;">
+                    {% if product.image %}
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}" style="width: 100%; height: 180px; object-fit: cover;">
+                    {% else %}
+                        <i class="ri-image-line" style="font-size: 3rem; display: flex; align-items: center; justify-content: center; height: 180px;"></i>
+                    {% endif %}
+                    <span style="position: absolute; top: 0.5rem; left: 0.5rem; background: #f39c12; color: white; padding: 0.25rem 0.75rem; border-radius: 1rem; font-size: 0.75rem;">Featured</span>
+                </div>
+                <div class="product-info">
+                    <h4 style="font-weight: 600; margin-bottom: 0.5rem;">{{ product.name }}</h4>
+                    <div style="margin-bottom: 0.5rem; color: #f39c12;">
+                        {% for i in "12345" %}
+                            {% if product.rating >= i %}★{% elif product.rating >= i|add:"-0.5" %}◐{% else %}☆{% endif %}
+                        {% endfor %}
+                    </div>
+                    <div style="margin-bottom: 0.75rem;">
+                        <span style="font-size: 1.2rem; color: #2ecc71; font-weight: 600;">₹{{ product.price }}</span>
+                    </div>
+                    <a href="{% url 'add_to_cart' product.id %}" class="btn btn-primary" style="width: 100%; justify-content: center; text-decoration: none;">
+                        <i class="ri-shopping-cart-2-fill"></i> Add to Cart
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Recommended Products -->
+    <div style="margin-bottom: 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3 class="card-title">Recommended for You</h3>
+            <a href="{% url 'product_list' %}" style="color: var(--primary); text-decoration: none; font-weight: 600;">View All <i class="ri-arrow-right-line"></i></a>
+        </div>
+
+        <div class="product-grid">
+            {% for product in recent_products %}
+            <div class="product-card">
             <div class="product-img">
                 <i class="ri-image-line" style="font-size: 3rem;"></i>
             </div>

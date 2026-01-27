@@ -1,0 +1,189 @@
+{% extends 'layouts/dashboard_base.html' %}
+{% load custom_filters %}
+
+{% block title %}Track Order #{{ order.id }}{% endblock %}
+{% block page_title %}Order Tracking - Order #{{ order.id }}{% endblock %}
+
+{% block content %}
+<div class="animate-fade">
+    <!-- Breadcrumb -->
+    <div style="margin-bottom: 2rem;">
+        <a href="{% url 'order_history' %}" style="color: var(--primary); text-decoration: none;">← Back to Orders</a>
+    </div>
+
+    <!-- Order Header -->
+    <div class="card" style="margin-bottom: 2rem; background: linear-gradient(135deg, var(--surface), var(--primary)); border: none;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem;">
+            <div>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 0.5rem;">Order ID</p>
+                <h3 style="margin: 0; font-weight: 700;">Order #{{ order.id }}</h3>
+            </div>
+            <div>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 0.5rem;">Status</p>
+                <h3 style="margin: 0; font-weight: 700;">
+                    <span style="display: inline-block; padding: 0.25rem 0.75rem; border-radius: 1rem; background: 
+                        {% if order.status == 'Delivered' %}#2ecc71
+                        {% elif order.status == 'Processing' %}#3498db
+                        {% elif order.status == 'Pending' %}#f39c12
+                        {% elif order.status == 'Cancelled' %}#e74c3c
+                        {% else %}#95a5a6{% endif %};
+                        color: white; font-size: 0.9rem;">
+                        {{ order.status }}
+                    </span>
+                </h3>
+            </div>
+            <div>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 0.5rem;">Order Date</p>
+                <h3 style="margin: 0; font-weight: 700;">{{ order.created_at|date:"M d, Y" }}</h3>
+            </div>
+            <div>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 0.5rem;">Total Amount</p>
+                <h3 style="margin: 0; font-weight: 700; color: #2ecc71;">₹{{ order.total_price }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;">
+        <!-- Tracking Timeline -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">📍 Tracking Timeline</h3>
+            </div>
+
+            <div style="position: relative; padding: 1rem 0;">
+                {% for stage in stages %}
+                <div style="display: flex; margin-bottom: {% if forloop.last %}0{% else %}2rem{% endif %};">
+                    <!-- Timeline Line -->
+                    {% if not forloop.last %}
+                    <div style="position: absolute; left: 11px; top: 40px; width: 2px; height: 40px; background: 
+                        {% if stage.status == 'completed' %}#2ecc71
+                        {% elif stage.status == 'processing' %}#3498db
+                        {% else %}#e0e0e0{% endif %};"></div>
+                    {% endif %}
+                    
+                    <!-- Status Circle -->
+                    <div style="display: flex; flex-direction: column; align-items: center; margin-right: 1.5rem; position: relative; z-index: 1;">
+                        <div style="width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: 
+                            {% if stage.status == 'completed' %}#2ecc71
+                            {% elif stage.status == 'processing' %}#3498db
+                            {% elif stage.status == 'cancelled' %}#e74c3c
+                            {% else %}#e0e0e0{% endif %};
+                            color: white; font-weight: bold; font-size: 0.8rem;">
+                            {% if stage.status == 'completed' %}<i class="ri-check-line"></i>
+                            {% elif stage.status == 'processing' %}<i class="ri-loader-4-line" style="animation: spin 1s linear infinite;"></i>
+                            {% elif stage.status == 'cancelled' %}<i class="ri-close-line"></i>
+                            {% else %}<i class="ri-circle-blank-line"></i>{% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Stage Info -->
+                    <div>
+                        <h4 style="margin: 0 0 0.25rem 0; font-weight: 600;">{{ stage.name }}</h4>
+                        {% if stage.date %}
+                        <p style="margin: 0; color: var(--text-muted); font-size: 0.9rem;">{{ stage.date|date:"M d, Y • H:i" }}</p>
+                        {% else %}
+                        <p style="margin: 0; color: var(--text-muted); font-size: 0.9rem;">
+                            {% if stage.status == 'completed' %}Completed
+                            {% elif stage.status == 'processing' %}In Progress
+                            {% elif stage.status == 'cancelled' %}Cancelled
+                            {% else %}Pending{% endif %}
+                        </p>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Order Summary -->
+        <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+            <!-- Shipping Info -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">📦 Shipping Information</h3>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                    <div>
+                        <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0 0 0.25rem 0;">Name</p>
+                        <p style="margin: 0; font-weight: 500;">{{ order.full_name }}</p>
+                    </div>
+                    <div>
+                        <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0 0 0.25rem 0;">City</p>
+                        <p style="margin: 0; font-weight: 500;">{{ order.city }}</p>
+                    </div>
+                    <div>
+                        <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0 0 0.25rem 0;">Address</p>
+                        <p style="margin: 0; font-weight: 500;">{{ order.address }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Info -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">💳 Payment</h3>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                    <div>
+                        <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0 0 0.25rem 0;">Method</p>
+                        <p style="margin: 0; font-weight: 500;">
+                            {% if order.payment_method == 'credit_card' %}💳 Credit Card
+                            {% elif order.payment_method == 'debit_card' %}💳 Debit Card
+                            {% elif order.payment_method == 'upi' %}📱 UPI
+                            {% elif order.payment_method == 'paypal' %}🅿️ PayPal
+                            {% elif order.payment_method == 'net_banking' %}🏦 Net Banking
+                            {% elif order.payment_method == 'wallet' %}👛 Digital Wallet
+                            {% elif order.payment_method == 'cod' %}🚚 Cash on Delivery
+                            {% else %}{{ order.get_payment_method_display }}{% endif %}
+                        </p>
+                    </div>
+                    <div style="border-top: 1px solid var(--border); padding-top: 1rem;">
+                        <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0 0 0.25rem 0;">Total Amount</p>
+                        <p style="margin: 0; font-weight: 600; font-size: 1.2rem; color: #2ecc71;">₹{{ order.total_price }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Items -->
+    <div class="card" style="margin-top: 2rem;">
+        <div class="card-header">
+            <h3 class="card-title">📋 Order Items ({{ total_items }})</h3>
+        </div>
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="border-bottom: 2px solid var(--border);">
+                        <th style="padding: 0.75rem; text-align: left; color: var(--text-muted); font-weight: 600;">Product</th>
+                        <th style="padding: 0.75rem; text-align: center; color: var(--text-muted); font-weight: 600;">Qty</th>
+                        <th style="padding: 0.75rem; text-align: right; color: var(--text-muted); font-weight: 600;">Unit Price</th>
+                        <th style="padding: 0.75rem; text-align: right; color: var(--text-muted); font-weight: 600;">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in order_items %}
+                    <tr style="border-bottom: 1px solid var(--border);">
+                        <td style="padding: 0.75rem;">
+                            <a href="{% url 'product_detail' item.product.id %}" style="color: var(--primary); text-decoration: none; font-weight: 500;">
+                                {{ item.product.name }}
+                            </a>
+                        </td>
+                        <td style="padding: 0.75rem; text-align: center;">{{ item.quantity }}</td>
+                        <td style="padding: 0.75rem; text-align: right;">₹{{ item.price }}</td>
+                        <td style="padding: 0.75rem; text-align: right; font-weight: 600;">₹{{ item.price|mul:item.quantity }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+</style>
+{% endblock %}

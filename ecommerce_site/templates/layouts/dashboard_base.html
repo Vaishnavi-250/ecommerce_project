@@ -27,7 +27,7 @@
 
             <ul class="nav-menu">
                 <li class="nav-item">
-                    <a href="#" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                    <a href="{% url 'dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
                         <i class="ri-dashboard-line"></i> Dashboard
                     </a>
                 </li>
@@ -37,18 +37,28 @@
                         <i class="ri-store-2-line"></i> Marketplace
                     </a>
                 </li>
+                {% if user.is_authenticated %}
+                <li class="nav-item">
+                    <a href="{% url 'favorites_list' %}"
+                        class="{% if request.resolver_match.url_name == 'favorites_list' %}active{% endif %}">
+                        <i class="ri-heart-line"></i> Favorites
+                    </a>
+                </li>
+                {% endif %}
                 {% if user.is_staff %}
                 <li class="nav-item">
-                    <a href="#" class="{% if 'manage' in request.path %}active{% endif %}">
+                    <a href="{% url 'add_product' %}" class="{% if 'manage' in request.path %}active{% endif %}">
                         <i class="ri-edit-box-line"></i> Manage Products
                     </a>
                 </li>
                 {% endif %}
+                {% if user.is_authenticated %}
                 <li class="nav-item">
                     <a href="{% url 'order_history' %}" class="{% if 'orders' in request.path %}active{% endif %}">
                         <i class="ri-shopping-bag-3-line"></i> My Orders
                     </a>
                 </li>
+                {% endif %}
             </ul>
 
             <div class="user-profile-sm">

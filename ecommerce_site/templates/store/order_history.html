@@ -7,49 +7,85 @@
 <div class="animate-fade">
     {% if orders %}
     <div class="card">
-        <table style="width: 100%; border-collapse: collapse;">
-            <thead>
-                <tr style="border-bottom: 1px solid var(--border); text-align: left;">
-                    <th style="padding: 1rem; color: var(--text-muted); font-weight: 500;">Order ID</th>
-                    <th style="padding: 1rem; color: var(--text-muted); font-weight: 500;">Date</th>
-                    <th style="padding: 1rem; color: var(--text-muted); font-weight: 500;">Total</th>
-                    <th style="padding: 1rem; color: var(--text-muted); font-weight: 500;">Status</th>
-                    <th style="padding: 1rem; color: var(--text-muted); font-weight: 500;">Items</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for order in orders %}
-                <tr style="border-bottom: 1px solid var(--border);">
-                    <td style="padding: 1rem; font-weight: 600;">#{{ order.id }}</td>
-                    <td style="padding: 1rem;">{{ order.created_at|date:"M d, Y" }}</td>
-                    <td style="padding: 1rem;">₹{{ order.get_total_cost }}</td>
-                    <td style="padding: 1rem;">
-                        <span
-                            style="background: rgba(16, 185, 129, 0.1); color: var(--success); padding: 0.25rem 0.5rem; border-radius: 1rem; font-size: 0.85rem;">
-                            {% if order.paid %}Paid{% else %}Pending{% endif %}
-                        </span>
-                    </td>
-                    <td style="padding: 1rem; font-size: 0.9rem; color: var(--text-muted);">
-                        {% for item in order.items.all %}
-                        {{ item.product.name }} (x{{ item.quantity }}){% if not forloop.last %}, {% endif %}
-                        {% endfor %}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <div class="card-header">
+            <h3 class="card-title">📦 My Orders ({{ orders|length }})</h3>
+        </div>
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="border-bottom: 2px solid var(--border); text-align: left;">
+                        <th style="padding: 1rem; color: var(--text-muted); font-weight: 600;">Order ID</th>
+                        <th style="padding: 1rem; color: var(--text-muted); font-weight: 600;">Date</th>
+                        <th style="padding: 1rem; color: var(--text-muted); font-weight: 600;">Total</th>
+                        <th style="padding: 1rem; color: var(--text-muted); font-weight: 600;">Payment</th>
+                        <th style="padding: 1rem; color: var(--text-muted); font-weight: 600;">Status</th>
+                        <th style="padding: 1rem; color: var(--text-muted); font-weight: 600;">Items</th>
+                        <th style="padding: 1rem; color: var(--text-muted); font-weight: 600;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr style="border-bottom: 1px solid var(--border);">
+                        <td style="padding: 1rem; font-weight: 600;">#{{ order.id }}</td>
+                        <td style="padding: 1rem;">{{ order.created_at|date:"M d, Y" }}</td>
+                        <td style="padding: 1rem; font-weight: 600; color: #2ecc71;">₹{{ order.total_price }}</td>
+                        <td style="padding: 1rem; font-size: 0.9rem;">
+                            {% if order.payment_method == 'credit_card' %}💳 Credit Card
+                            {% elif order.payment_method == 'debit_card' %}💳 Debit Card
+                            {% elif order.payment_method == 'upi' %}📱 UPI
+                            {% elif order.payment_method == 'paypal' %}🅿️ PayPal
+                            {% elif order.payment_method == 'net_banking' %}🏦 Net Banking
+                            {% elif order.payment_method == 'wallet' %}👛 Wallet
+                            {% elif order.payment_method == 'cod' %}🚚 COD
+                            {% else %}{{ order.get_payment_method_display }}{% endif %}
+                        </td>
+                        <td style="padding: 1rem;">
+                            <span style="display: inline-block; padding: 0.25rem 0.75rem; border-radius: 1rem; font-size: 0.85rem; font-weight: 600; background: 
+                                {% if order.status == 'Delivered' %}#2ecc71; color: white;
+                                {% elif order.status == 'Processing' %}#3498db; color: white;
+                                {% elif order.status == 'Pending' %}#f39c12; color: white;
+                                {% elif order.status == 'Cancelled' %}#e74c3c; color: white;
+                                {% else %}#95a5a6; color: white;{% endif %}">
+                                {{ order.status }}
+                            </span>
+                        </td>
+                        <td style="padding: 1rem; font-size: 0.9rem; color: var(--text-muted);">
+                            {{ order.items.count }} item{{ order.items.count|pluralize }}
+                        </td>
+                        <td style="padding: 1rem;">
+                            <a href="{% url 'order_tracking' order.id %}" class="btn btn-sm" style="background: var(--primary); color: white; padding: 0.4rem 0.8rem; border-radius: 0.25rem; text-decoration: none; font-size: 0.85rem;">
+                                <i class="ri-map-pin-line"></i> Track
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
     {% else %}
     <div class="card" style="text-align: center; padding: 4rem;">
         <i class="ri-file-list-3-line"
             style="font-size: 4rem; color: var(--text-muted); opacity: 0.5; margin-bottom: 1.5rem;"></i>
         <h2>No orders found</h2>
-        <p style="color: var(--text-muted); max-width: 400px; margin: 0.5rem auto 2rem;">You haven't placed any orders
-            yet.</p>
+        <p style="color: var(--text-muted); max-width: 400px; margin: 0.5rem auto 2rem;">You haven't placed any orders yet.</p>
         <a href="{% url 'product_list' %}" class="btn btn-primary">
-            Start Shopping
+            <i class="ri-shopping-bag-line"></i> Start Shopping
         </a>
     </div>
     {% endif %}
 </div>
+
+<style>
+    .btn-sm {
+        display: inline-block;
+        font-weight: 500;
+        transition: all 0.3s;
+    }
+    
+    .btn-sm:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+</style>
 {% endblock %}

@@ -5,66 +5,127 @@
 
 {% block content %}
 <div class="animate-fade">
-    <div style="display: grid; grid-template-columns: 1fr 350px; gap: 2rem;">
+    <div style="display: grid; grid-template-columns: 1fr 380px; gap: 2rem;">
 
         <!-- Checkout Form -->
         <div class="card">
             <div class="card-header">
-                <h3 class="card-title">Shipping Information</h3>
+                <h3 class="card-title">Shipping & Payment Information</h3>
             </div>
 
             <form method="post">
                 {% csrf_token %}
-                {% for field in form %}
-                <div style="margin-bottom: 1.5rem;">
-                    <label style="display: block; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.9rem;">
-                        {{ field.label }}
-                    </label>
-                    {{ field }}
-                    {% if field.errors %}
-                    <div style="color: var(--danger); font-size: 0.8rem; margin-top: 0.25rem;">
-                        {{ field.errors.0 }}
-                    </div>
-                    {% endif %}
+                
+                <!-- Shipping Section -->
+                <div style="margin-bottom: 2rem;">
+                    <h4 style="color: var(--text-muted); margin-bottom: 1rem; font-size: 0.95rem; text-transform: uppercase;">Delivery Address</h4>
+                    
+                    {% for field in form %}
+                        {% if field.name != 'payment_method' %}
+                        <div style="margin-bottom: 1.5rem;">
+                            <label style="display: block; margin-bottom: 0.5rem; color: var(--text-muted); font-size: 0.9rem;">
+                                {{ field.label }}
+                            </label>
+                            {{ field }}
+                            {% if field.errors %}
+                            <div style="color: var(--danger); font-size: 0.8rem; margin-top: 0.25rem;">
+                                {{ field.errors.0 }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    {% endfor %}
                 </div>
-                {% endfor %}
+
+                <!-- Payment Section -->
+                <div style="border-top: 1px solid var(--border); padding-top: 1.5rem; margin-bottom: 1.5rem;">
+                    <h4 style="color: var(--text-muted); margin-bottom: 1rem; font-size: 0.95rem; text-transform: uppercase;">Payment Method</h4>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                        {% for value, label in form.payment_method.field.choices %}
+                        <label style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem; background: var(--surface); border: 2px solid var(--border); border-radius: 0.5rem; cursor: pointer; transition: all 0.3s;">
+                            <input type="radio" name="payment_method" value="{{ value }}" {% if form.payment_method.value == value %}checked{% endif %} style="cursor: pointer;">
+                            <span style="font-size: 0.9rem;">
+                                {% if "credit" in label %}💳 {{ label }}
+                                {% elif "debit" in label %}💳 {{ label }}
+                                {% elif "upi" in label %}📱 {{ label }}
+                                {% elif "paypal" in label %}🅿️ {{ label }}
+                                {% elif "net" in label %}🏦 {{ label }}
+                                {% elif "wallet" in label %}👛 {{ label }}
+                                {% elif "cod" in label %}🚚 {{ label }}
+                                {% else %}{{ label }}{% endif %}
+                            </span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
 
                 <button type="submit" class="btn btn-primary"
-                    style="width: 100%; justify-content: center; margin-top: 1rem;">
+                    style="width: 100%; justify-content: center; margin-top: 1rem; font-weight: 600;">
                     Complete Order <i class="ri-check-line"></i>
                 </button>
             </form>
         </div>
 
         <!-- Order Summary Side Panel -->
-        <div class="card" style="height: fit-content;">
+        <div class="card" style="height: fit-content; position: sticky; top: 20px;">
             <div class="card-header">
                 <h3 class="card-title">Order Summary</h3>
             </div>
 
-            <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem;">
+            <div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.5rem; max-height: 300px; overflow-y: auto;">
                 {% for item in cart %}
-                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border);">
                     <div>
                         <div style="font-weight: 500;">{{ item.product.name }}</div>
-                        <div style="color: var(--text-muted);">Qty: {{ item.quantity }}</div>
+                        <div style="color: var(--text-muted); font-size: 0.85rem;">Qty: {{ item.quantity }} × ₹{{ item.price }}</div>
                     </div>
-                    <div>₹{{ item.total_price }}</div>
+                    <div style="font-weight: 600;">₹{{ item.total_price }}</div>
                 </div>
                 {% endfor %}
             </div>
 
-            <div
-                style="display: flex; justify-content: space-between; margin: 1rem 0; padding-top: 1rem; border-top: 1px solid var(--border); font-weight: 700; font-size: 1.1rem;">
-                <span>Total</span>
-                <span>₹{{ cart.get_total_price }}</span>
+            <!-- Price Breakdown -->
+            <div style="background: var(--surface); padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.9rem;">
+                    <span>Subtotal</span>
+                    <span>₹{{ cart.get_total_price }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.9rem;">
+                    <span>Shipping</span>
+                    <span style="color: #2ecc71;">FREE</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.9rem;">
+                    <span>Tax (10%)</span>
+                    <span>₹{{ tax|floatformat:2 }}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; padding-top: 0.75rem; border-top: 1px dashed var(--border); font-weight: 700; font-size: 1.1rem;">
+                    <span>Total Amount</span>
+                    <span style="color: #2ecc71;">₹{{ total|floatformat:2 }}</span>
+                </div>
             </div>
 
             <a href="{% url 'cart_detail' %}"
-                style="display: block; text-align: center; color: var(--text-muted); text-decoration: none; font-size: 0.9rem;">
-                Edit Cart
+                style="display: block; text-align: center; color: var(--text-muted); text-decoration: none; font-size: 0.9rem; padding: 0.5rem;">
+                ← Edit Cart
             </a>
         </div>
     </div>
 </div>
+
+<style>
+    input[type="radio"] {
+        accent-color: #2ecc71;
+    }
+    
+    label input[type="radio"]:checked ~ span {
+        color: #2ecc71;
+        font-weight: 600;
+    }
+    
+    label:has(input[type="radio"]:checked) {
+        border-color: #2ecc71 !important;
+        background: rgba(46, 204, 113, 0.1) !important;
+    }
+</style>
 {% endblock %}
