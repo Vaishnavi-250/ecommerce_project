@@ -1,0 +1,36 @@
+{
+  "expo": {
+    "name": "MTC Connect",
+    "slug": "mtc-connect-app",
+    "version": "1.0.0",
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTabletMode": true,
+      "bundleIdentifier": "com.mtcconnect.app"
+    },
+    "android": {
+      "package": "com.mtcconnect.app",
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "CAMERA",
+        "RECORD_AUDIO",
+        "INTERNET"
+      ]
+    },
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow MTC Connect to access your location."
+        }
+      ],
+      [
+        "expo-barcode-scanner",
+        {
+          "cameraPermission": "Allow MTC Connect to access your camera."
+        }
+      ]
+    ]
+  }
+}
