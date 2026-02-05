@@ -1,0 +1,25 @@
+body {
+  font-family: Arial;
+  max-width: 600px;
+  margin: auto;
+  padding: 20px;
+}
+
+input, textarea, button {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+button {
+  background-color: green;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.issue {
+  border: 1px solid #ccc;
+  padding: 10px;
+  margin-bottom: 10px;
+}
